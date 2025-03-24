@@ -20,9 +20,6 @@ jobs:
           java-version: "17"
           cache: maven
 
-      - name: Build with Maven
-        run: mvn clean install
-
       - name: Build Backend Jar
         run: |
           cd backend
