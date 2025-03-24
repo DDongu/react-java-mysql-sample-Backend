@@ -20,13 +20,13 @@ jobs:
           java-version: "17"
           cache: maven
 
-      - name: Install Maven Wrapper (if missing)
+      - name: Ensure mvnw is executable
+        run: chmod +x backend/mvnw
+
+      - name: Build and Install Dependencies
         run: |
           cd backend
-          if [ ! -f mvnw ]; then
-            mvn -N io.takari:maven:wrapper
-          fi
-          chmod +x mvnw
+          ./mvnw clean install -DskipTests
 
       - name: Build Backend Jar
         run: |
