@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # AWS SSM에서 최신 MONGO_URI 가져오기
 MONGO_URI=$(aws ssm get-parameter --name "/my-app/documentdb-uri" --with-decryption --query "Parameter.Value" --output text)
 
@@ -19,8 +18,6 @@ if [ -n "$IMAGE_IDS" ]; then
   docker rmi $IMAGE_IDS || true
 fi
 
-# 최신 Docker 이미지 가져오기 (latest 태그 유지)
+# 최신 Docker 이미지 가져오기 및 컨테이너 실행(latest 태그 유지)
 docker pull ddongu/my-backend-app:latest
-
-# 컨테이너 실행 (DocumentDB 연결)
 docker run -d --name my-backend-app -p 8080:8080 -e MONGO_URI="${MONGO_URI}" ddongu/my-backend-app:latest
