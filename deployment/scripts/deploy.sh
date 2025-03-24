@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 최신 MONGO_URI 가져오기
-MONGO_URI=$(aws secretsmanager get-secret-value --secret-id DocumentDBSecret --query 'SecretString' --output text | jq -r .MONGO_URI)
+MONGO_URI=$(aws ssm get-parameter --name "/my-app/documentdb-uri" --with-decryption --query "Parameter.Value" --output text)
 
 # 기존 컨테이너 중지 및 삭제
 docker stop my-backend-app || true
