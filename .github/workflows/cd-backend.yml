@@ -2,7 +2,7 @@ name: Deploy Backend via CodeDeploy
 
 on:
   workflow_run:
-    workflows: ["Build & Push Backend Docker Image"] # CI 완료 후 실행
+    workflows: ["Build & Push Backend Docker Image"]
     types:
       - completed
 
@@ -16,7 +16,7 @@ jobs:
 
       - name: Zip deployment package
         run: |
-          zip -r deployment-backend-package.zip deployment/appspec-backend.yml deployment/scripts/
+          zip -r deployment-backend-package.zip deployment/appspec.yml deployment/scripts/
 
       - name: Upload deployment package to S3
         run: |
@@ -29,8 +29,8 @@ jobs:
       - name: Trigger CodeDeploy deployment
         run: |
           aws deploy create-deployment \
-            --application-name DockerCodeDeployBackendApp \
-            --deployment-group-name DockerDeploymentBackendGroup \
+            --application-name BackendCodeDeployApp \
+            --deployment-group-name BackendDeploymentGroup \
             --s3-location bucket=docker-image-storage-bucket,key=deployment-backend-package.zip,bundleType=zip
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

@@ -1,5 +1,11 @@
-FROM adoptopenjdk/openjdk11:jdk-11.0.2.9-slim
-ENV PORT 8080
-COPY target/*.jar /opt/app.jar
-WORKDIR /opt
-ENTRYPOINT exec java $JAVA_OPTS -jar app.jar
+# 1. Java 17 JDK 기반 이미지 사용
+FROM openjdk:17-jdk-slim
+
+# 2. 작업 디렉토리 설정
+WORKDIR /app
+
+# 3. CI에서 미리 빌드된 .jar 파일을 복사
+COPY target/*.jar app.jar
+
+# 4. JAR 파일 실행
+CMD ["java", "-jar", "app.jar"]
