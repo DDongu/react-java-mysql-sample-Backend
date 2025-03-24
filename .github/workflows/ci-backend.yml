@@ -21,7 +21,7 @@ jobs:
 
       - name: Build Spring Boot JAR
         run: |
-          cd corona-tracker-backend
+          cd backend
           chmod +x mvnw
           ./mvnw clean package -DskipTests
 
