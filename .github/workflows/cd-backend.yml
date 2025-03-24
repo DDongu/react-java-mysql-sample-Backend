@@ -1,0 +1,38 @@
+name: Deploy Backend via CodeDeploy
+
+on:
+  workflow_run:
+    workflows: ["Build & Push Backend Docker Image"] # CI 완료 후 실행
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Zip deployment package
+        run: |
+          zip -r deployment-backend-package.zip deployment/appspec-backend.yml deployment/scripts/
+
+      - name: Upload deployment package to S3
+        run: |
+          aws s3 cp deployment-backend-package.zip s3://docker-image-storage-bucket/deployment-backend-package.zip
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "ap-northeast-2"
+
+      - name: Trigger CodeDeploy deployment
+        run: |
+          aws deploy create-deployment \
+            --application-name DockerCodeDeployBackendApp \
+            --deployment-group-name DockerDeploymentBackendGroup \
+            --s3-location bucket=docker-image-storage-bucket,key=deployment-backend-package.zip,bundleType=zip
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "ap-northeast-2"
