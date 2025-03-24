@@ -20,10 +20,17 @@ jobs:
           java-version: "17"
           cache: maven
 
+      - name: Install Maven Wrapper (if missing)
+        run: |
+          cd backend
+          if [ ! -f mvnw ]; then
+            mvn -N io.takari:maven:wrapper
+          fi
+          chmod +x mvnw
+
       - name: Build Backend Jar
         run: |
           cd backend
-          chmod +x mvnw
           ./mvnw clean package -DskipTests
 
       - name: Build Docker Image
