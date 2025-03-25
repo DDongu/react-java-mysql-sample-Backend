@@ -30,7 +30,7 @@ public class CoronaTrackerController {
 		headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 		HttpEntity<String> entity = new HttpEntity<>(headers);
 
-		// ✅ 새로운 API URL
+		// ✅ 새로운 API URL (disease.sh)
 		String url = "https://disease.sh/v3/covid-19/countries";
 
 		// API 응답 데이터 가져오기
@@ -41,17 +41,15 @@ public class CoronaTrackerController {
 			ObjectMapper objectMapper = new ObjectMapper();
 			JsonNode rootNode = objectMapper.readTree(response);
 
-			// 필요한 데이터만 변환하여 반환
-			List<Object> transformedData = rootNode.findValuesAsText("").stream()
-				.map(countryNode -> {
-					return objectMapper.createObjectNode()
-						.put("country_code", countryNode.get("countryInfo").get("iso2").asText())
-						.put("location", countryNode.get("country").asText())
-						.put("confirmed", countryNode.get("cases").asInt())
-						.put("dead", countryNode.get("deaths").asInt())
-						.put("recovered", countryNode.get("recovered").asInt());
-				})
-				.collect(Collectors.toList());
+			// 🔹 JSON 데이터를 변환하여 반환
+			List<Object> transformedData = rootNode.findValues("").stream()
+				.map(countryNode -> objectMapper.createObjectNode()
+					.put("country_code", countryNode.get("countryInfo").get("iso2").asText()) // 국가 코드
+					.put("location", countryNode.get("country").asText()) // 국가명
+					.put("confirmed", countryNode.get("cases").asInt()) // 확진자 수
+					.put("dead", countryNode.get("deaths").asInt()) // 사망자 수
+					.put("recovered", countryNode.get("recovered").asInt()) // 회복자 수
+				).collect(Collectors.toList());
 
 			return transformedData;
 
