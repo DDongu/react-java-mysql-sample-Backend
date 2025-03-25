@@ -1,10 +1,15 @@
 #!/bin/bash
 # AWS SSM에서 최신 MONGO_URI 가져오기
 MONGO_URI=$(aws ssm get-parameter --name "/my-app/documentdb-uri" --with-decryption --query "Parameter.Value" --output text)
+APP_URL=$(aws ssm get-parameter --name "/my-app/frontend-elb-url" --with-decryption --query "Parameter.Value" --output text)
 
 # MONGO_URI가 올바르게 가져와졌는지 확인
 if [ -z "$MONGO_URI" ]; then
   echo "Error: MONGO_URI 값을 가져오지 못했습니다."
+  exit 1
+fi
+if [ -z "$APP_URL" ]; then
+  echo "Error: APP_URL 값을 가져오지 못했습니다."
   exit 1
 fi
 
@@ -20,7 +25,11 @@ fi
 
 # 최신 Docker 이미지 가져오기 및 컨테이너 실행(latest 태그 유지)
 docker pull ddongu/my-backend-app:latest
-docker run -d --name my-backend-app -p 8080:8080 -e MONGO_URI="${MONGO_URI}" ddongu/my-backend-app:latest
+docker run -d --name my-backend-app \
+  -p 8080:8080 \
+  -e MONGO_URI="${MONGO_URI}" \
+  -e APP_URL="${APP_URL}" \
+  ddongu/my-backend-app:latest
 
 # ✅ 더미 데이터 중복 확인 후 삽입 (컬렉션 이름: comment)
 echo "Checking if dummy data exists in MongoDB..."
