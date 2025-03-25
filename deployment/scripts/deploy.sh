@@ -1,3 +1,4 @@
+# deploy.sh
 #!/bin/bash
 # AWS SSM에서 최신 MONGO_URI 가져오기
 MONGO_URI=$(aws ssm get-parameter --name "/my-app/documentdb-uri" --with-decryption --query "Parameter.Value" --output text | python3 -c "import sys, urllib.parse; print(urllib.parse.quote(sys.stdin.read().strip(), safe=':/@?&=,'))")

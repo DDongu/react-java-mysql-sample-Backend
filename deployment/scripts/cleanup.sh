@@ -1,3 +1,4 @@
+# cleanup.sh
 #!/bin/bash
 
 # 기존 배포 폴더 삭제
