@@ -34,10 +34,10 @@ public class CommentService {
 
 		// If the comment is valid as per not null constraint we have to next
 		// check if the comment with the same name/id already exists
-		Optional<Comment> commantTitleOptional = commentRepo
+		Optional<Comment> commentTitleOptional = commentRepo
 				.findByTitle(comment.getTitle());
-		if (commantTitleOptional.isPresent()) {
-			System.out.println(commantTitleOptional.get());
+		if (commentTitleOptional.isPresent()) {
+			System.out.println(commentTitleOptional.get());
 			throw new CommentCollectionException(
 					CommentCollectionException.TitleAlreadyExists());
 		} else {
@@ -46,28 +46,22 @@ public class CommentService {
 
 	}
 
-	public void updateComment(String id, Comment newCommet)
+	public void updateComment(String id, Comment newComment)
 			throws ConstraintViolationException, CommentCollectionException {
-		Optional<Comment> commentWithId = commentRepo.findById(id);
-		Optional<Comment> movieWithSameTitle = commentRepo
-				.findByTitle(newCommet.getTitle());
-		if (commentWithId.isPresent()) {
-			if (movieWithSameTitle.isPresent()
-					&& !movieWithSameTitle.get().getId().equals(id)) {
+		
+		Comment existingComment = commentRepo.findById(id)
+			.orElseThrow(() -> new CommentCollectionException(CommentCollectionException.NotFoundException(id)));
 
-				throw new CommentCollectionException(
-						CommentCollectionException.TitleAlreadyExists());
-			}
-			Comment commentToUpdate = commentWithId.get();
-			BeanUtils.copyProperties(newCommet, commentToUpdate);
+		commentRepo.findByTitle(newComment.getTitle())
+			.filter(comment -> !comment.getId().equals(id)) // 같은 ID가 아닐 경우 중복 체크
+			.ifPresent(comment -> {
+				throw new RuntimeException(new CommentCollectionException(CommentCollectionException.TitleAlreadyExists()));
+			});
 
-			// To make sure that newComment doesn't get added as a new document
-			commentToUpdate.setId(id);
-			commentRepo.save(commentToUpdate);
-		} else {
-			throw new CommentCollectionException(
-					CommentCollectionException.NotFoundException(id));
-		}
+		existingComment.setTitle(newComment.getTitle());
+		existingComment.setDesc(newComment.getDesc());
+
+		commentRepo.save(existingComment);
 	}
 	
 	
