@@ -7,6 +7,8 @@ WORKDIR /app
 # 3. DocumentDB 글로벌 인증서 다운로드 (RDS 인증서)
 RUN apt-get update && apt-get install -y wget && \
     wget https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem -O /app/global-bundle.pem && \
+    chmod 644 /app/global-bundle.pem && \
+    chown root:root /app/global-bundle.pem && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 4. CI에서 미리 빌드된 .jar 파일을 복사
