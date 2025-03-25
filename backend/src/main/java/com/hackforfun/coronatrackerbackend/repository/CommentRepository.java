@@ -6,5 +6,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CommentRepository extends MongoRepository<Comment, String> {
-    // Additional custom query methods can be added here if needed
 }

@@ -3,28 +3,23 @@ package com.hackforfun.coronatrackerbackend.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.validation.constraints.NotNull;
-
 @Document(collection = "comments")
 public class Comment {
-
     @Id
     private String id;
-
-    @NotNull(message = "Title cannot be null")
     private String title;
+    private String desc;
 
-    private String description;
-
-    // Constructors
+    // 기본 생성자
     public Comment() {}
 
-    public Comment(String title, String description) {
+    // 파라미터가 있는 생성자
+    public Comment(String title, String desc) {
         this.title = title;
-        this.description = description;
+        this.desc = desc;
     }
 
-    // Getters and Setters
+    // Getter와 Setter 메서드
     public String getId() {
         return id;
     }
@@ -41,11 +36,11 @@ public class Comment {
         this.title = title;
     }
 
-    public String getDescription() {
-        return description;
+    public String getDesc() {
+        return desc;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setDesc(String desc) {
+        this.desc = desc;
     }
 }

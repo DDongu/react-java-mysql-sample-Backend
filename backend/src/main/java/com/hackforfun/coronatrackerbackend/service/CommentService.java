@@ -1,12 +1,10 @@
 package com.hackforfun.coronatrackerbackend.service;
 
-import com.hackforfun.coronatrackerbackend.exception.CommentCollectionException;
 import com.hackforfun.coronatrackerbackend.model.Comment;
 import com.hackforfun.coronatrackerbackend.repository.CommentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.validation.ConstraintViolationException;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,40 +18,22 @@ public class CommentService {
         return commentRepository.findAll();
     }
 
-    public void createComment(Comment comment) throws ConstraintViolationException, CommentCollectionException {
-        // Optional: Add validation logic
-        Optional<Comment> existingComment = commentRepository.findById(comment.getId());
-        
+    public Comment saveComment(Comment comment) {
+        return commentRepository.save(comment);
+    }
+
+    public Comment updateComment(String id, Comment updatedComment) {
+        Optional<Comment> existingComment = commentRepository.findById(id);
         if (existingComment.isPresent()) {
-            throw new CommentCollectionException(CommentCollectionException.CommentAlreadyExists());
+            Comment commentToUpdate = existingComment.get();
+            commentToUpdate.setTitle(updatedComment.getTitle());
+            commentToUpdate.setDesc(updatedComment.getDesc());
+            return commentRepository.save(commentToUpdate);
         }
-        
-        commentRepository.save(comment);
+        return null;
     }
 
-    public void updateComment(String id, Comment editedComment) throws ConstraintViolationException, CommentCollectionException {
-        Optional<Comment> commentToUpdate = commentRepository.findById(id);
-        
-        if (commentToUpdate.isEmpty()) {
-            throw new CommentCollectionException(CommentCollectionException.CommentNotFound());
-        }
-        
-        // Update the existing comment with new values
-        Comment existingComment = commentToUpdate.get();
-        existingComment.setTitle(editedComment.getTitle());
-        existingComment.setDescription(editedComment.getDescription());
-        // Add other fields as needed
-        
-        commentRepository.save(existingComment);
-    }
-
-    public void deleteCommentById(String id) throws CommentCollectionException {
-        Optional<Comment> commentToDelete = commentRepository.findById(id);
-        
-        if (commentToDelete.isEmpty()) {
-            throw new CommentCollectionException(CommentCollectionException.CommentNotFound());
-        }
-        
+    public void deleteComment(String id) {
         commentRepository.deleteById(id);
     }
 }
