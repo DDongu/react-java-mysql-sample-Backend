@@ -16,46 +16,47 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 public class CoronaTrackerController {
 
-	@Autowired
-	RestTemplate restTemplate;
+    @Autowired
+    RestTemplate restTemplate;
 
-	@RequestMapping(method = RequestMethod.GET, value = "/coronatracker/statisticsbycountry")
-	public List<Object> getStatisticsByCountry() {
-		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-		HttpEntity<String> entity = new HttpEntity<>(headers);
+    @RequestMapping(method = RequestMethod.GET, value = "/coronatracker/statisticsbycountry")
+    public List<ObjectNode> getStatisticsByCountry() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        HttpEntity<String> entity = new HttpEntity<>(headers);
 
-		// ✅ 새로운 API URL (disease.sh)
-		String url = "https://disease.sh/v3/covid-19/countries";
+        String url = "https://disease.sh/v3/covid-19/countries";
 
-		// API 응답 데이터 가져오기
-		String response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class).getBody();
+        String response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class).getBody();
 
-		try {
-			// JSON 파싱
-			ObjectMapper objectMapper = new ObjectMapper();
-			JsonNode rootNode = objectMapper.readTree(response);
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode rootNode = objectMapper.readTree(response);
 
-			// 🔹 JSON 데이터를 변환하여 반환
-			List<Object> transformedData = rootNode.findValues("").stream()
-				.map(countryNode -> objectMapper.createObjectNode()
-					.put("country_code", countryNode.get("countryInfo").get("iso2").asText()) // 국가 코드
-					.put("location", countryNode.get("country").asText()) // 국가명
-					.put("confirmed", countryNode.get("cases").asInt()) // 확진자 수
-					.put("dead", countryNode.get("deaths").asInt()) // 사망자 수
-					.put("recovered", countryNode.get("recovered").asInt()) // 회복자 수
-				).collect(Collectors.toList());
+            // 전체 JSON 배열을 직접 스트림으로 변환
+            List<ObjectNode> transformedData = objectMapper.createArrayNode();
+            for (JsonNode countryNode : rootNode) {
+                ObjectNode transformedNode = objectMapper.createObjectNode()
+                    .put("country_code", countryNode.get("countryInfo").get("iso2").asText())
+                    .put("location", countryNode.get("country").asText())
+                    .put("confirmed", countryNode.get("cases").asInt())
+                    .put("dead", countryNode.get("deaths").asInt())
+                    .put("recovered", countryNode.get("recovered").asInt());
+                
+                ((List<ObjectNode>) transformedData).add(transformedNode);
+            }
 
-			return transformedData;
+            return transformedData;
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			return List.of();
-		}
-	}
+        } catch (Exception e) {
+            e.printStackTrace();
+            return List.of();
+        }
+    }
 }
