@@ -11,6 +11,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
 @Configuration
@@ -31,9 +33,13 @@ public class MongoConfig {
             downloadCertificate(CERT_URL, CERT_PATH);
             logger.info("✅ 인증서 다운로드 완료: " + CERT_PATH);
 
+            // 🔹 MONGO_URI를 URL 디코딩
+            String decodedUri = URLDecoder.decode(MONGO_URI, StandardCharsets.UTF_8.toString());
+            logger.info("🔗 디코딩된 MongoDB URI: " + decodedUri);
+
             // MongoDB 연결 문자열 생성
-            String finalUri = MONGO_URI + "&tlsCAFile=" + CERT_PATH;
-            logger.info("🔗 MongoDB 연결 URI: " + finalUri);
+            String finalUri = decodedUri + "&tlsCAFile=" + CERT_PATH;
+            logger.info("🔗 최종 MongoDB 연결 URI: " + finalUri);
 
             ConnectionString connectionString = new ConnectionString(finalUri);
             MongoClientSettings settings = MongoClientSettings.builder()
