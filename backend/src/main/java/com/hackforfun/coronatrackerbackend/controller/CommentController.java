@@ -16,6 +16,13 @@ public class CommentController {
     @Autowired
     private CommentService commentService;
 
+	//Health Check
+ 	@RequestMapping(method=RequestMethod.GET,value="/")
+ 	public ResponseEntity checkHelath()
+ 	{
+ 		return new ResponseEntity("Congratulations!! Spring Boot Application is up and running..",HttpStatus.OK);
+ 	}
+
     @GetMapping("/getComments")
     public ResponseEntity<List<Comment>> getAllComments() {
         List<Comment> comments = commentService.getAllComments();
