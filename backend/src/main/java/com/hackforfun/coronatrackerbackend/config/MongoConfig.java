@@ -7,10 +7,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
 import java.util.logging.Logger;
 
 @Configuration
@@ -26,16 +27,19 @@ public class MongoConfig {
         try {
             logger.info("🔹 MongoDB 설정 시작...");
 
-            // 인증서 다운로드 (컨테이너 내 경로에 저장)
+            // 1️⃣ 인증서 다운로드
             logger.info("📥 인증서 다운로드 시작: " + CERT_URL);
             downloadCertificate(CERT_URL, CERT_PATH);
             logger.info("✅ 인증서 다운로드 완료: " + CERT_PATH);
 
-            // MongoDB 연결 문자열 생성
-            String finalUri = MONGO_URI + "&tlsCAFile=" + CERT_PATH;
-            logger.info("🔗 MongoDB 연결 URI: " + finalUri);
+            // 2️⃣ 인증서를 Java Keystore에 등록
+            logger.info("🔑 인증서 Keystore 등록 시작...");
+            addCertificateToKeystore(CERT_PATH);
+            logger.info("✅ 인증서 Keystore 등록 완료!");
 
-            ConnectionString connectionString = new ConnectionString(finalUri);
+            // 3️⃣ MongoDB 연결 설정
+            logger.info("🔗 MongoDB 연결 URI: " + MONGO_URI);
+            ConnectionString connectionString = new ConnectionString(MONGO_URI);
             MongoClientSettings settings = MongoClientSettings.builder()
                     .applyConnectionString(connectionString)
                     .build();
@@ -50,6 +54,9 @@ public class MongoConfig {
         }
     }
 
+    /**
+     * 🔹 인증서 다운로드
+     */
     private void downloadCertificate(String certUrl, String outputPath) throws Exception {
         File certFile = new File(outputPath);
         if (!certFile.exists()) {
@@ -65,6 +72,45 @@ public class MongoConfig {
             logger.info("✅ 인증서 저장 완료: " + outputPath);
         } else {
             logger.info("⚡ 이미 인증서가 존재함, 다운로드 생략: " + outputPath);
+        }
+    }
+
+    /**
+     * 🔑 인증서를 Java Keystore에 추가
+     */
+    private void addCertificateToKeystore(String certPath) throws Exception {
+        File certFile = new File(certPath);
+        if (!certFile.exists()) {
+            throw new FileNotFoundException("❌ 인증서 파일을 찾을 수 없습니다: " + certPath);
+        }
+
+        try (InputStream certInput = new FileInputStream(certFile)) {
+            // 인증서 객체 생성
+            CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+            Certificate cert = certFactory.generateCertificate(certInput);
+
+            // Java Keystore 가져오기
+            File keystoreFile = new File(System.getProperty("java.home") + "/lib/security/cacerts");
+            if (!keystoreFile.exists()) {
+                throw new FileNotFoundException("❌ Keystore 파일을 찾을 수 없습니다: " + keystoreFile.getAbsolutePath());
+            }
+
+            try (InputStream keystoreInput = new FileInputStream(keystoreFile)) {
+                KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+                keystore.load(keystoreInput, "changeit".toCharArray());
+
+                // 이미 등록된 인증서인지 확인
+                if (keystore.getCertificate("rds-cert") == null) {
+                    keystore.setCertificateEntry("rds-cert", cert);
+
+                    try (FileOutputStream keystoreOutput = new FileOutputStream(keystoreFile)) {
+                        keystore.store(keystoreOutput, "changeit".toCharArray());
+                        logger.info("✅ 인증서가 Java Keystore에 추가됨: rds-cert");
+                    }
+                } else {
+                    logger.info("⚡ 인증서가 이미 Java Keystore에 등록되어 있음: rds-cert");
+                }
+            }
         }
     }
 }
