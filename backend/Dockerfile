@@ -5,7 +5,7 @@ FROM openjdk:17-jdk
 WORKDIR /app
 
 # AWS DocumentDB TLS 인증서 다운로드
-RUN apt-get update && apt-get install -y wget && \
+RUN apt update && apt install -y wget && \
     wget -q https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem -O /tmp/global-bundle.pem && \
     chmod 644 /tmp/global-bundle.pem
 
