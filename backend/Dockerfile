@@ -7,5 +7,5 @@ WORKDIR /app
 # 3. CI에서 미리 빌드된 .jar 파일을 복사
 COPY target/*.jar app.jar
 
-# 5. JAR 파일 실행 (디버그 모드 포함)
-CMD ["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "-XX:+UseContainerSupport", "-jar", "app.jar"]
+# 4. JAR 파일 실행 (Spring Boot에서 DocumentDB 인증서 다운로드 및 적용)
+CMD ["java", "-jar", "app.jar"]
