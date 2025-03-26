@@ -13,8 +13,5 @@ RUN apt-get update && apt-get install -y wget && \
 # 애플리케이션 JAR 파일 복사
 COPY target/*.jar app.jar
 
-# 환경 변수 설정 (MongoDB에서 인증서를 사용하도록 적용)
-ENV TLS_CERT_PATH="/tmp/global-bundle.pem"
-
 # JAR 파일 실행
 CMD ["java", "-jar", "app.jar"]
