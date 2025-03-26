@@ -33,23 +33,27 @@ public class CoronaTrackerController {
 
         String url = "https://disease.sh/v3/covid-19/countries";
 
-        String response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class).getBody();
-
         try {
+            String response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class).getBody();
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode rootNode = objectMapper.readTree(response);
 
-            // 전체 JSON 배열을 직접 스트림으로 변환
             List<ObjectNode> transformedData = objectMapper.createArrayNode();
+            
             for (JsonNode countryNode : rootNode) {
                 ObjectNode transformedNode = objectMapper.createObjectNode()
-                    .put("country_code", countryNode.get("countryInfo").get("iso2").asText())
-                    .put("location", countryNode.get("country").asText())
-                    .put("confirmed", countryNode.get("cases").asInt())
-                    .put("dead", countryNode.get("deaths").asInt())
-                    .put("recovered", countryNode.get("recovered").asInt());
+                    .put("country_code", 
+                        countryNode.path("countryInfo").path("iso2").asText(""))
+                    .put("location", 
+                        countryNode.path("country").asText(""))
+                    .put("confirmed", 
+                        countryNode.path("cases").asInt(0))
+                    .put("dead", 
+                        countryNode.path("deaths").asInt(0))
+                    .put("recovered", 
+                        countryNode.path("recovered").asInt(0));
                 
-                ((List<ObjectNode>) transformedData).add(transformedNode);
+                transformedData.add(transformedNode);
             }
 
             return transformedData;
