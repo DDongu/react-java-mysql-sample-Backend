@@ -32,24 +32,24 @@ docker run -d --name my-backend-app \
   -e APP_URL="${APP_URL}" \
   ddongu/my-backend-app:latest
 
-# # ✅ 더미 데이터 중복 확인 후 삽입 (컬렉션 이름: comment)
+# # ✅ 더미 데이터 중복 확인 후 삽입 (컬렉션 이름: comments)
 # echo "Checking if dummy data exists in MongoDB..."
 
 # EXISTING_COUNT=$(mongosh "$MONGO_URI" --tls --tlsAllowInvalidCertificates --quiet --eval '
 #   db = db.getSiblingDB("coronatracker");
-#   db.comment.count({ "title": "Sample Title 1" });
+#   db.comments.count({ "title": "Sample Title 1" });
 # ')
 
 # if [ "$EXISTING_COUNT" -eq 0 ]; then
 #   echo "Inserting dummy data into MongoDB..."
 #   mongosh "$MONGO_URI" --tls --tlsAllowInvalidCertificates --eval '
 #     db = db.getSiblingDB("coronatracker");
-#     db.comment.insertMany([
+#     db.comments.insertMany([
 #       { "title": "Sample Title 1", "desc": "This is a sample comment description 1" },
 #       { "title": "Sample Title 2", "desc": "This is another sample comment description 2" }
 #     ]);
 #   '
-#   echo "Dummy data inserted successfully!"
+#   echo "✅ Dummy data inserted successfully!"
 # else
-#   echo "Dummy data already exists. Skipping insertion."
+#   echo "⚠️ Dummy data already exists. Skipping insertion."
 # fi
