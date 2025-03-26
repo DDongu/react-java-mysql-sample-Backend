@@ -3,8 +3,6 @@ package com.hackforfun.coronatrackerbackend.config;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoDatabase;
-import org.bson.Document;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -13,10 +11,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.logging.Logger;
 
 @Configuration
 public class MongoConfig {
 
+    private static final Logger logger = Logger.getLogger(MongoConfig.class.getName());
     private static final String MONGO_URI = System.getenv("MONGO_URI");
     private static final String CERT_URL = "https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem";
     private static final String CERT_PATH = "/app/global-bundle.pem";
@@ -24,21 +24,28 @@ public class MongoConfig {
     @Bean
     public MongoTemplate mongoTemplate() {
         try {
-            // 인증서 다운로드 (컨테이너 내 경로에 저장)
-            downloadCertificate(CERT_URL, CERT_PATH);
+            logger.info("🔹 MongoDB 설정 시작...");
 
-            // MongoDB 연결 설정
-            ConnectionString connectionString = new ConnectionString(
-                MONGO_URI + "&tlsCAFile=" + CERT_PATH
-            );
-            console.log("connectionString: ")
-            console.log(connectionString)
+            // 인증서 다운로드 (컨테이너 내 경로에 저장)
+            logger.info("📥 인증서 다운로드 시작: " + CERT_URL);
+            downloadCertificate(CERT_URL, CERT_PATH);
+            logger.info("✅ 인증서 다운로드 완료: " + CERT_PATH);
+
+            // MongoDB 연결 문자열 생성
+            String finalUri = MONGO_URI + "&tlsCAFile=" + CERT_PATH;
+            logger.info("🔗 MongoDB 연결 URI: " + finalUri);
+
+            ConnectionString connectionString = new ConnectionString(finalUri);
             MongoClientSettings settings = MongoClientSettings.builder()
                     .applyConnectionString(connectionString)
                     .build();
 
-            return new MongoTemplate(MongoClients.create(settings), "coronatracker");
+            MongoTemplate mongoTemplate = new MongoTemplate(MongoClients.create(settings), "coronatracker");
+            logger.info("🚀 MongoDB 연결 성공!");
+
+            return mongoTemplate;
         } catch (Exception e) {
+            logger.severe("❌ MongoDB 연결 실패: " + e.getMessage());
             throw new RuntimeException("MongoDB 연결 실패: " + e.getMessage(), e);
         }
     }
@@ -55,6 +62,9 @@ public class MongoConfig {
                 }
             }
             certFile.setReadable(true, false);
+            logger.info("✅ 인증서 저장 완료: " + outputPath);
+        } else {
+            logger.info("⚡ 이미 인증서가 존재함, 다운로드 생략: " + outputPath);
         }
     }
 }
