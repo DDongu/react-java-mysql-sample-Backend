@@ -10,9 +10,12 @@ import java.util.Optional;
 
 @Service
 public class CommentService {
+    private final CommentRepository commentRepository;
 
     @Autowired
-    private CommentRepository commentRepository;
+    public CommentService(CommentRepository commentRepository) {
+        this.commentRepository = commentRepository;
+    }
 
     public List<Comment> getAllComments() {
         return commentRepository.findAll();
@@ -22,18 +25,19 @@ public class CommentService {
         return commentRepository.save(comment);
     }
 
-    public Comment updateComment(String id, Comment updatedComment) {
-        Optional<Comment> existingComment = commentRepository.findById(id);
-        if (existingComment.isPresent()) {
-            Comment commentToUpdate = existingComment.get();
-            commentToUpdate.setTitle(updatedComment.getTitle());
-            commentToUpdate.setDesc(updatedComment.getDesc());
-            return commentRepository.save(commentToUpdate);
-        }
-        return null;
+    public Optional<Comment> updateComment(String id, Comment updatedComment) {
+        return commentRepository.findById(id).map(existingComment -> {
+            existingComment.setTitle(updatedComment.getTitle());
+            existingComment.setDesc(updatedComment.getDesc());
+            return commentRepository.save(existingComment);
+        });
     }
 
-    public void deleteComment(String id) {
-        commentRepository.deleteById(id);
+    public boolean deleteComment(String id) {
+        if (commentRepository.existsById(id)) {
+            commentRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }
