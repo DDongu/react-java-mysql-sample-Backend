@@ -31,7 +31,8 @@ public class MongoConfig {
             ConnectionString connectionString = new ConnectionString(
                 MONGO_URI + "&tlsCAFile=" + CERT_PATH
             );
-
+            console.log("connectionString: ")
+            console.log(connectionString)
             MongoClientSettings settings = MongoClientSettings.builder()
                     .applyConnectionString(connectionString)
                     .build();
