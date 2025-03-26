@@ -6,8 +6,8 @@ WORKDIR /app
 
 # AWS DocumentDB TLS 인증서 다운로드
 RUN apt-get update && apt-get install -y wget && \
-    wget https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem -O /tmp/global-bundle.pem && \
-    chmod 644 /tmp/global-bundle.pem && \
+    wget https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem -O /app/global-bundle.pem && \
+    chmod 644 /app/global-bundle.pem && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 애플리케이션 JAR 파일 복사
