@@ -1,8 +1,8 @@
-name: Deploy Backend via CodeDeploy
+name: Deploy Frontend via CodeDeploy
 
 on:
   workflow_run:
-    workflows: ["Build & Push Backend Docker Image"]
+    workflows: ["Build & Push Frontend Docker Image"]
     types:
       - completed
 
@@ -17,11 +17,11 @@ jobs:
 
       - name: Zip deployment package
         run: |
-          zip -r deployment-backend-package.zip deployment/appspec.yml deployment/scripts/
+          zip -r deployment-frontend-package.zip deployment/appspec.yml deployment/scripts/
 
       - name: Upload deployment package to S3
         run: |
-          aws s3 cp deployment-backend-package.zip s3://docker-image-storage-bucket/deployment-backend-package.zip
+          aws s3 cp deployment-frontend-package.zip s3://docker-image-storage-bucket/deployment-frontend-package.zip
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -30,9 +30,9 @@ jobs:
       - name: Trigger CodeDeploy deployment
         run: |
           aws deploy create-deployment \
-            --application-name BackendCodeDeployApp \
-            --deployment-group-name BackendDeploymentAppGroup \
-            --s3-location bucket=docker-image-storage-bucket,key=deployment-backend-package.zip,bundleType=zip
+            --application-name frontendCodeDeployApp \
+            --deployment-group-name frontendDeploymentAppGroup \
+            --s3-location bucket=docker-image-storage-bucket,key=deployment-frontend-package.zip,bundleType=zip
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
