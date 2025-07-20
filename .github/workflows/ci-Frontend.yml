@@ -1,4 +1,4 @@
-name: Build & Push Backend Docker Image
+name: Build & Push frontend Docker Image
 
 on:
   push:
@@ -20,19 +20,13 @@ jobs:
           java-version: "17"
           cache: maven
 
-      - name: Build Backend Jar
-        run: |
-          cd backend
-          chmod +x mvnw
-          ./mvnw clean package -DskipTests
-
       - name: Build Docker Image
         run: |
-          cd backend
-          docker build -t my-backend-app:latest .
+          cd frontend
+          docker build -t my-frontend-app:latest .
 
       - name: Push Docker Image to Docker Hub
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-          docker tag my-backend-app:latest ${{ secrets.DOCKER_USERNAME }}/my-backend-app:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/my-backend-app:latest
+          docker tag my-frontend-app:latest ${{ secrets.DOCKER_USERNAME }}/my-frontend-app:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/my-frontend-app:latest
